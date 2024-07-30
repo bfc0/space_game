@@ -28,23 +28,21 @@ def create_stars(canvas, chance=STAR_PROBABILITY):
 
 def update_objects(canvas):
     canvas.nodelay(True)
+    curses.curs_set(False)
     stars = create_stars(canvas)
-    coros = [blink(canvas, x, y, star) for x, y, star in stars]
+    coros = [create_blink(canvas, x, y, star) for x, y, star in stars]
     maxy, maxx = canvas.getmaxyx()
     center = maxy // 2, maxx // 2
     coros.append(fire(canvas, *center))
-    curses.curs_set(False)
     ship_frames = load_frames("rocket")
-    run_ship = create_ship(canvas, *center, ship_frames)
+    coros.append(create_ship(canvas, *center, ship_frames))
 
     while True:
-        for coro in coros:
+        for coro in coros.copy():
             try:
                 coro.send(None)
             except StopIteration:
                 coros.remove(coro)
-
-        run_ship.send(None)
 
         canvas.border()
         canvas.refresh()
@@ -62,8 +60,7 @@ def create_ship(canvas, row, column, frames):
         for frame in itertools.cycle(frames):
 
             speed = update_speed(speed)
-            row, column, speed = update_position(
-                row, column, speed, canvas, frame)
+            row, column, speed = update_position(row, column, speed, canvas, frame)
             draw_frame(canvas, row, column, frame)
             await sleep(TICK_LENGTH)
             draw_frame(canvas, row, column, frame, negative=True)
@@ -96,7 +93,7 @@ def create_ship(canvas, row, column, frames):
     return animate_spaceship()
 
 
-async def blink(canvas, row, column, symbol="*"):
+def create_blink(canvas, row, column, symbol="*"):
     frames = [
         ((row, column, symbol, curses.A_DIM), 2),
         ((row, column, symbol), 0.3),
@@ -104,9 +101,14 @@ async def blink(canvas, row, column, symbol="*"):
         ((row, column, symbol), 0.3),
     ]
 
-    # rotate animation by a random amount
-    steps = random.randint(0, len(frames) - 1)
-    frames = frames[steps:] + frames[:steps]
+    offset = random.randint(0, len(frames) - 1)
+
+    return blink(canvas, frames, offset)
+
+
+async def blink(canvas, frames, offset):
+
+    frames = frames[offset:] + frames[:offset]
 
     for args, t in itertools.cycle(frames):
         canvas.addstr(*args)
