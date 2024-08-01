@@ -6,7 +6,6 @@ from utils import load_frames, sleep, TICK_LENGTH
 from garbage import create_garbage
 from ship import create_ship
 from globals import coros, obstacles
-from obstacles import show_obstacles
 from utils import update_year, draw_text
 
 STAR_PROBABILITY = 0.05
@@ -47,6 +46,7 @@ def update_objects(canvas):
     coros.append(draw_text(text_canvas, maxx))
 
     while True:
+
         for coro in coros.copy():
             try:
                 coro.send(None)
