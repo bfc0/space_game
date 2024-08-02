@@ -6,10 +6,10 @@ from utils import load_frames, sleep, TICK_LENGTH
 from garbage import create_garbage
 from ship import create_ship
 from globals import coros, obstacles
-from utils import update_year, draw_text
+from utils import update_year, draw_year_info
 
 STAR_PROBABILITY = 0.05
-STRING_WINDOW_HEIGHT = 3
+TEXT_HEIGHT = 2
 
 
 def create_stars(canvas, chance=STAR_PROBABILITY):
@@ -39,11 +39,9 @@ def update_objects(canvas):
     coros.append(create_ship(canvas, *center, ship_frames))
     coros.append(create_garbage(coros, canvas, 0.5))
 
-    text_canvas = canvas.derwin(
-        STRING_WINDOW_HEIGHT, maxx, maxy - STRING_WINDOW_HEIGHT, 0
-    )
+    text_canvas = canvas.derwin(TEXT_HEIGHT, maxx, maxy - TEXT_HEIGHT, 0)
     coros.append(update_year())
-    coros.append(draw_text(text_canvas, maxx))
+    coros.append(draw_year_info(text_canvas))
 
     while True:
 

@@ -1,11 +1,11 @@
 import asyncio
-from math import tan
 import os
 from curses_tools import draw_frame, get_frame_size
 from globals import year
 from game_scenario import PHRASES
 
 TICK_LENGTH = 0.1
+TICKS_IN_YEAR = 15
 
 
 def read_file(file_path: str) -> str:
@@ -39,11 +39,11 @@ async def update_year():
     global year
 
     while True:
-        await sleep(TICK_LENGTH * 15)
+        await sleep(TICK_LENGTH * TICKS_IN_YEAR)
         year[0] += 1
 
 
-async def draw_text(canvas, width):
+async def draw_year_info(canvas):
     text = ""
 
     while True:
@@ -52,8 +52,9 @@ async def draw_text(canvas, width):
             text += phrase
 
         _, columns_size = get_frame_size(text)
-        canvas.addstr(1, width // 2 - columns_size // 2, text)
-        draw_frame(canvas, 1, width // 2 - columns_size // 2, text)
+        _, maxx = canvas.getmaxyx()
+        offset = maxx - columns_size - 10
+        draw_frame(canvas, 0, offset, text)
         canvas.refresh()
         await sleep(TICK_LENGTH)
-        draw_frame(canvas, 1, width // 2 - columns_size // 2, text, True)
+        draw_frame(canvas, 0, offset, text, negative=True)
